@@ -1,4 +1,4 @@
-package model;
+package com.antonimo.bankapp.model;
 
 public class BankAccount {
 	private String	holder;
@@ -21,10 +21,14 @@ public class BankAccount {
 	public void	deposit(double amount) {
 		if (amount <= 0)
 			throw new IllegalArgumentException("Deposit must be positive");
+		if (balance == Double.MAX_VALUE)
+			throw new ArithmeticException("Max money amount reached");
 		balance += amount;
 	}
 
 	public void	withdraw(double amount) {
+		if (amount <= 0)
+			throw new IllegalArgumentException("Can't withdraw 0 or less");
 		if ((balance - amount) < 0)
 			throw new IllegalArgumentException("Insufficient funds");
 		balance -= amount;

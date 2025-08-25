@@ -1,7 +1,7 @@
-package app;
+package com.antonimo.bankapp.app;
 
-import model.BankAccount;
-import repository.*;
+import com.antonimo.bankapp.model.BankAccount;
+import com.antonimo.bankapp.repository.*;
 import java.util.Scanner;
 
 public class Main {
@@ -52,6 +52,7 @@ public class Main {
 		System.out.print("Introduce holder: ");
 		String holder = scan.nextLine();
 		double balance = readDouble(scan, "Introduce balance: ");
+
 		try {
 			repository.save(new BankAccount(holder, balance));
 		} catch (IllegalArgumentException e) {

@@ -1,6 +1,6 @@
-package repository;
+package com.antonimo.bankapp.repository;
 
-import model.BankAccount;
+import com.antonimo.bankapp.model.BankAccount;
 import java.util.Map;
 
 public interface BankRepository {

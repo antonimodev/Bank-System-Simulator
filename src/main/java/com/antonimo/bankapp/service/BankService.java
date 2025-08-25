@@ -1,6 +1,7 @@
-package service;
+package com.antonimo.bankapp.service;
 
-import repository.BankRepository;
+import com.antonimo.bankapp.repository.BankRepository;
+import com.antonimo.bankapp.model.BankAccount;
 
 public class BankService {
 	private	BankRepository repository;
@@ -19,5 +20,17 @@ public class BankService {
 
 		repository.findByHolder(src).withdraw(amount);
 		repository.findByHolder(dst).deposit(amount);
+	}
+
+	public BankAccount	createAccount(String name) {
+		BankAccount	account = new BankAccount(name);
+		repository.save(account);
+		return (account);
+	}
+
+	public BankAccount	createAccount(String name, double amount) {
+		BankAccount	account = new BankAccount(name, amount);
+		repository.save(account);
+		return (account);
 	}
 }

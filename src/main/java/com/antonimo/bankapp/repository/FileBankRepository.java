@@ -1,4 +1,4 @@
-package repository;
+package com.antonimo.bankapp.repository;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -7,7 +7,7 @@ import java.io.FileWriter;
 import java.io.FileReader;
 import java.io.BufferedReader;
 
-import model.BankAccount;
+import com.antonimo.bankapp.model.BankAccount;
 
 public class FileBankRepository implements BankRepository {
 	private final File file;
