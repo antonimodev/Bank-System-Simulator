@@ -1,70 +1,105 @@
 package com.antonimo.bankapp.service;
 
+import com.antonimo.bankapp.model.BankAccount;
+import com.antonimo.bankapp.repository.BankRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.antonimo.bankapp.model.BankAccount;
-import com.antonimo.bankapp.repository.*;
-
 public class BankServiceTest {
-	//Transfer
+
+	private BankRepository	mockRepo;
+	private BankService		service;
+
+	@BeforeEach
+	void setUp() {
+		mockRepo = mock(BankRepository.class);
+		service = new BankService(mockRepo);
+	}
+
 	@Test
-	void	transferValid() {
-		BankRepository	repository = new InMemoryBankRepository();
-		BankService	service = new BankService(repository);
+	void createAccountValid() {
+		doNothing()
+			.when(mockRepo)
+				.save(any(BankAccount.class));
 
 		BankAccount account = service.createAccount("X", 100);
-		BankAccount account2 = service.createAccount("Y", 100);
 
-		service.transferAmount(account.getHolder(), account2.getHolder(), 20);
-
-		assertEquals(80.0, account.getBalance(), 1e-9);
-		assertEquals(120.0, account2.getBalance(), 1e-9);
+		verify(mockRepo).save(any(BankAccount.class));
+		assertEquals("X", account.getHolder());
+		assertEquals(100, account.getBalance(), 1e-9);
 	}
 
 	@Test
-	void	transferNegative() {
-		BankRepository	repository = new InMemoryBankRepository();
-		BankService	service = new BankService(repository);
+	void transferValid() {
+		BankAccount accountA = new BankAccount("X", 100);
+		BankAccount accountB = new BankAccount("Y", 50);
 
-		BankAccount	account = service.createAccount("X", 100);
-		BankAccount	account2 = service.createAccount("Y", 100);
+		when(mockRepo.findByHolder("X"))
+			.thenReturn(accountA);
+		when(mockRepo.findByHolder("Y"))
+			.thenReturn(accountB);
 
-		assertThrows(IllegalArgumentException.class,
-		() -> service.transferAmount(account.getHolder(), account2.getHolder(), -20));
+		service.transferAmount("X", "Y", 30);
+
+		verify(mockRepo).findByHolder("X");
+		verify(mockRepo).findByHolder("Y");
+
+		assertEquals(70, accountA.getBalance(), 1e-9);
+		assertEquals(80, accountB.getBalance(), 1e-9);
 	}
 
 	@Test
-	void	transferInsufficientFunds() {
-		BankRepository	repository = new InMemoryBankRepository();
-		BankService	service = new BankService(repository);
-
-		BankAccount	account = service.createAccount("X", 100);
-		BankAccount	account2 = service.createAccount("Y", 100);
-
-		assertThrows(IllegalArgumentException.class,
-		() -> service.transferAmount(account.getHolder(), account2.getHolder(), 150));
+	void transferNegativeAmount() {
+		assertThrows(IllegalArgumentException.class, () ->
+				service.transferAmount("X", "Y", -10));
 	}
 
 	@Test
-	void	transferToSelf() {
-		BankRepository	repository = new InMemoryBankRepository();
-		BankService	service = new BankService(repository);
+	void transferInsufficientFunds() {
+		BankAccount accountA = new BankAccount("X", 50);
+		BankAccount accountB = new BankAccount("Y", 50);
 
-		BankAccount	account = service.createAccount("X", 100);
+		when(mockRepo.findByHolder("X"))
+			.thenReturn(accountA);
+		when(mockRepo.findByHolder("Y"))
+			.thenReturn(accountB);
 
-		assertThrows(IllegalArgumentException.class,
-		() -> service.transferAmount(account.getHolder(), account.getHolder(), 20));
+		assertThrows(IllegalArgumentException.class, () ->
+				service.transferAmount("X", "Y", 100));
 	}
 
 	@Test
-	void	transferToNull() {
-		BankRepository	repository = new InMemoryBankRepository();
-		BankService	service = new BankService(repository);
+	void transferToSelf() {
+		BankAccount account = new BankAccount("X", 100);
+		when(mockRepo.findByHolder("X"))
+			.thenReturn(account);
 
-		BankAccount	account = service.createAccount("X", 100);
+		assertThrows(IllegalArgumentException.class, () ->
+				service.transferAmount("X", "X", 20));
+	}
 
-		assertThrows(NullPointerException.class,
-		() -> service.transferAmount(account.getHolder(), "null", 20));
+	@Test
+	void transferFromNonExistentAccount() {
+		when(mockRepo.findByHolder("Null"))
+			.thenReturn(null);
+		when(mockRepo.findByHolder("Y"))
+			.thenReturn(new BankAccount("Y", 50));
+
+		assertThrows(NullPointerException.class, () ->
+				service.transferAmount("Null", "Y", 20));
+	}
+
+	@Test
+	void transferToNonExistentAccount() {
+		when(mockRepo.findByHolder("X"))
+			.thenReturn(new BankAccount("X", 100));
+		when(mockRepo.findByHolder("Null"))
+			.thenReturn(null);
+
+		assertThrows(NullPointerException.class, () ->
+				service.transferAmount("X", "Null", 20));
 	}
 }
+
